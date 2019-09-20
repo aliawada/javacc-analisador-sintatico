@@ -1,0 +1,101 @@
+PARSER_BEGIN(SyntaxChecker)
+
+package myNewPackage;
+
+import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Scanner;
+import java.io.IOException;
+
+public class SyntaxChecker {
+  
+    public static void main(String[] args) {
+      
+		String content = null;
+                try {
+					content = new String(Files.readAllBytes(Paths.get("C:/Users/Veritas03/Desktop/teste.txt")));
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+        try {
+            new SyntaxChecker(new java.io.StringReader(content)).programaPrincipal();
+            System.out.println("Syntax is okay\n");
+ 			System.out.println(content);
+           
+        } catch (Throwable e) {
+            // Catching Throwable is ugly but JavaCC throws Error objects!
+            System.out.println("Syntax check failed: " + e.getMessage());
+        }
+        
+    }
+    
+}
+
+PARSER_END(SyntaxChecker)
+
+SKIP: {
+< " " | "\t" | "\r" | "\n" | "\r\n" > //White space
+| <"//" (~["\n","\r"])* ("\n"|"\r"|"\r\n") > //Single-line comments
+| <"/*"(~["/"])*  "*""/" > //Multi-line comments
+}
+
+TOKEN: {
+  <START: "START">|
+  <END: "END">  |
+  ";" | "(" | ")" |
+  <DIGITO: ["0" - "9"]> |
+  <DECIMAL: (< DIGITO >)+ "." (< DIGITO >)+ > |
+  <LETRA: ["a" - "z"] | ["A" - "Z"] | "_" > |
+  <TIPO: "int"|"float"|"varchar"> |
+  <OPERADOR_MATEMATICO: "+" | "-" | "*" | "/" | "<-" > |
+  <OPERADOR_LOGICO: "<" | ">" | "<=" | ">=" | "<>" | "=" > |
+  <BLOCO_INICIO: ">>"> |
+  <BLOCO_FINAL: "<<"> |
+  <IF: "IF"|"if"> |
+  <THEN: "THEN" | "then">|
+  <ELSE: "ELSE" | "else">|
+  <ELSE_IF: "ELSE IF"| "else if" >  |
+  <FOR: "FOR" | "for">|
+  <TO: "TO" | "to">|
+  <DO: "do" | "DO">
+}
+
+void identificador(): {} {
+	(<LETRA> | <DIGITO> | <DECIMAL>)*
+}
+
+void declaracao(): {} {
+  <TIPO> identificador() ((<OPERADOR_LOGICO> | <OPERADOR_MATEMATICO>) identificador())* ";"
+}
+
+void operacoesMatematicas(): {} {
+  identificador() ((<OPERADOR_MATEMATICO> | <OPERADOR_LOGICO>) identificador())* ";"
+}
+
+void condicao(): {} {
+   <IF> identificador() (<OPERADOR_LOGICO> identificador())*
+   <THEN> <BLOCO_INICIO> comandos() <BLOCO_FINAL>
+   (<ELSE> <BLOCO_INICIO> comandos() <BLOCO_FINAL>)*
+}
+
+void loop(): {} {
+  <FOR> identificador() ((<OPERADOR_MATEMATICO> | <OPERADOR_LOGICO>) identificador())*
+  <TO> identificador() ((<OPERADOR_MATEMATICO> | <OPERADOR_LOGICO>) identificador())*<DO>
+  <BLOCO_INICIO> comandos() <BLOCO_FINAL>
+}
+
+void comandos(): {} {
+	(declaracao() | operacoesMatematicas() | condicao() | loop())*
+}
+
+void  programaPrincipal(): {} {
+	<START> (<LETRA>)*
+	(declaracao())*
+	<BLOCO_INICIO>
+	 comandos()
+	<BLOCO_FINAL>
+	<END>
+}

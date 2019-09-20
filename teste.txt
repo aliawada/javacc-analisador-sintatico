@@ -1,0 +1,20 @@
+START nome_programa
+float b <- 12;
+
+>>
+int a <- 2;
+
+IF a < b 
+ THEN >> 
+	a <- a + a;
+ <<
+ ELSE >>
+	b <- b + b;
+ <<
+
+FOR a <- a + 1 TO a = b DO
+>>
+varchar teste <- teste;
+<< 
+<<
+END
